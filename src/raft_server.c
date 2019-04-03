@@ -125,6 +125,7 @@ void raft_clear(raft_server_t* me_)
     me->last_applied_idx = 0;
     me->num_nodes = 0;
     me->node = NULL;
+    log_clear_entries(me->log);
     log_clear(me->log);
 }
 
@@ -312,8 +313,7 @@ int raft_recv_appendentries_response(raft_server_t* me_,
         raft_index_t next_idx = raft_node_get_next_idx(node);
         assert(0 < next_idx);
         /* Stale response -- ignore */
-        assert(match_idx <= next_idx - 1);
-        if (match_idx == next_idx - 1)
+        if (r->current_idx < match_idx)
             return 0;
         if (r->current_idx < next_idx - 1)
             raft_node_set_next_idx(node, min(r->current_idx + 1, raft_get_current_idx(me_)));
@@ -825,7 +825,7 @@ int raft_apply_entry(raft_server_t* me_)
         return -1;
 
     __log(me_, NULL, "applying log: %d, id: %d size: %d",
-          me->last_applied_idx, ety->id, ety->data.len);
+          log_idx, ety->id, ety->data.len);
 
     me->last_applied_idx++;
     if (me->cb.applylog)
