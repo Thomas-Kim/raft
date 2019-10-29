@@ -11,6 +11,7 @@
 #define RAFT_H_
 
 #include "raft_types.h"
+#include <stdlib.h>
 
 typedef enum {
     RAFT_ERR_NOT_LEADER=-2,
